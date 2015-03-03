@@ -1,5 +1,5 @@
 # forecast-service
-A pass-through microservice for Forecast.io, using [mlbright/forecast](https://github.com/mlbright/forecast)
+A pass-through microservice for the [forecast.io](http://forecast.io/) API, using [mlbright/forecast](https://github.com/mlbright/forecast)
 
 Command line:
 `--apikey="YOURAPIKEYHERE"`

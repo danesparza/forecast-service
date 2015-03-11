@@ -8,8 +8,10 @@ import (
 	"github.com/gorilla/mux"
 	forecast "github.com/mlbright/forecast/v2"
 	"github.com/pmylund/go-cache"
+	"github.com/rs/cors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,6 +26,7 @@ func main() {
 	//	Set up our flags
 	port := flag.Int("port", 3000, "The port to listen on")
 	key := flag.String("apikey", "ReplaceWithYourKey", "Your Forecast.io API key")
+	allowedOrigins := flag.String("allowedOrigins", "*", "A comma-separated list of valid CORS origins")
 
 	//	Parse the command line for flags:
 	flag.Parse()
@@ -69,10 +72,17 @@ func main() {
 	})
 
 	//	We want to expose our debug variables:
-	r.Handle("/debug/vars", http.DefaultServeMux)
+	//	r.Handle("/debug/vars", http.DefaultServeMux)
+
+	//	CORS handler
+	ch := cors.New(cors.Options{
+		AllowedOrigins:   strings.Split(*allowedOrigins, ","),
+		AllowCredentials: true,
+	})
+	handler := ch.Handler(r)
 
 	//	Indicate what port we're starting the service on
 	portString := strconv.Itoa(*port)
 	fmt.Println("Starting server on :", portString)
-	http.ListenAndServe(":"+portString, r)
+	http.ListenAndServe(":"+portString, handler)
 }

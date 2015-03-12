@@ -1,6 +1,8 @@
 # forecast-service
 A pass-through microservice for the [forecast.io](http://forecast.io/) API, using [mlbright/forecast](https://github.com/mlbright/forecast)
 
+[![Build Status](https://drone.io/github.com/danesparza/forecast-service/status.png)](https://drone.io/github.com/danesparza/forecast-service/latest)
+
 Command line:
 `--apikey="YOURAPIKEYHERE"`
 `--port=3000`

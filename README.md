@@ -7,7 +7,7 @@ To build, make sure you have the latest version of [Go](http://golang.org/) inst
 
 ### Quick Start
 
-Run the following commands to download the source into your workspace and build.
+Run the following commands get latest and build.
 
 ```bash
 go get github.com/danesparza/forecast-service

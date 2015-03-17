@@ -9,17 +9,23 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pmylund/go-cache"
 	"github.com/rs/cors"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
+const (
+	// URL example:  "http://www.claritin.com/weatherpollenservice/weatherpollenservice.svc/getforecast/30022"
+	POLLEN_BASEURL = "http://www.claritin.com/weatherpollenservice/weatherpollenservice.svc/getforecast/"
+)
+
 //	Expvars for cache hits and misses
-var pubCacheHits = expvar.NewInt("Cache hits")
-var pubCacheMisses = expvar.NewInt("Cache misses")
-var cacheHits int64 = 0
-var cacheMisses int64 = 0
+var forecastCacheHits = expvar.NewInt("Forecast cache hits")
+var forecastCacheMisses = expvar.NewInt("Forecast cache misses")
+var pollenCacheHits = expvar.NewInt("Pollen cache hits")
+var pollenCacheMisses = expvar.NewInt("Pollen cache misses")
 
 func main() {
 
@@ -46,8 +52,7 @@ func main() {
 		fcast, found := c.Get("forecast")
 		if !found {
 			//	We didn't find it in cache.
-			cacheMisses++
-			pubCacheMisses.Set(cacheMisses)
+			forecastCacheMisses.Add(1)
 
 			//	Call the API with the key and the lat/long
 			f, err := forecast.Get(*key, lat, long, "now", forecast.AUTO)
@@ -62,8 +67,7 @@ func main() {
 			fcast = f
 			c.Set("forecast", fcast, cache.DefaultExpiration)
 		} else {
-			cacheHits++
-			pubCacheHits.Set(cacheHits)
+			forecastCacheHits.Add(1)
 		}
 
 		//	Set the content type header and return the JSON
@@ -71,7 +75,39 @@ func main() {
 		json.NewEncoder(w).Encode(fcast)
 	})
 
-	//	We want to expose our debug variables:
+	r.HandleFunc("/pollen/{zip}", func(w http.ResponseWriter, r *http.Request) {
+
+		//	Parse the zipcode from the url
+		zip := mux.Vars(r)["zip"]
+
+		// 	See if we have the pollen in the cache
+		fcast, found := c.Get("pollen")
+		if !found {
+			//	We didn't find it in cache.
+			pollenCacheMisses.Add(1)
+
+			//	Call the API with the key and the lat/long
+			f, err := GetPollenInfo(zip)
+
+			//	If we have errors, return them using standard HTTP service method
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			//	Set the item in cache:
+			fcast = f
+			c.Set("pollen", fcast, cache.DefaultExpiration)
+		} else {
+			pollenCacheHits.Add(1)
+		}
+
+		//	Set the content type header and return the JSON
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		fmt.Fprint(w, fcast)
+	})
+
+	//	Uncomment this to expose debug variables:
 	//	r.Handle("/debug/vars", http.DefaultServeMux)
 
 	//	CORS handler
@@ -85,4 +121,31 @@ func main() {
 	portString := strconv.Itoa(*port)
 	fmt.Println("Starting server on :", portString)
 	http.ListenAndServe(":"+portString, handler)
+}
+
+func GetPollenInfo(zipcode string) (string, error) {
+
+	url := POLLEN_BASEURL + zipcode
+
+	//	Go fetch the response from the server:
+	res, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	//	Read the body of the response if we have one:
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	//	Remove the first and last characters:
+	formatted := string(body)
+	formatted = formatted[1 : len(formatted)-1]
+
+	//	Replace the escaped quotes with just quotes:
+	formatted = strings.Replace(formatted, `\"`, `"`, -1)
+
+	return formatted, nil
 }

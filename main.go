@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	// URL example:  "http://www.claritin.com/weatherpollenservice/weatherpollenservice.svc/getforecast/30022"
-	POLLEN_BASEURL = "http://www.claritin.com/weatherpollenservice/weatherpollenservice.svc/getforecast/"
+	// URL example:  "https://nasacort.com/Ajax/PollenResults.aspx?ZipCode=30022"
+	POLLEN_BASEURL = "https://nasacort.com/Ajax/PollenResults.aspx?ZipCode="
 )
 
 //	Expvars for cache hits and misses
@@ -140,12 +140,6 @@ func GetPollenInfo(zipcode string) (string, error) {
 		return "", err
 	}
 
-	//	Remove the first and last characters:
-	formatted := string(body)
-	formatted = formatted[1 : len(formatted)-1]
-
-	//	Replace the escaped quotes with just quotes:
-	formatted = strings.Replace(formatted, `\"`, `"`, -1)
-
-	return formatted, nil
+	//	Return the JSON body
+	return string(body), nil
 }

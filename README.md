@@ -1,5 +1,5 @@
 # forecast-service
-A pass-through microservice for the [forecast.io](http://forecast.io/) API, using [mlbright/forecast](https://github.com/mlbright/forecast)
+A pass-through microservice for the [forecast.io](http://forecast.io/) API and pollen data
 
 [![Build Status](https://drone.io/github.com/danesparza/forecast-service/status.png)](https://drone.io/github.com/danesparza/forecast-service/latest)
 

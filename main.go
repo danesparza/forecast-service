@@ -16,6 +16,37 @@ import (
 	"time"
 )
 
+/* The data from the pollen service */
+type PollenResponse struct {
+	StatusMessage string `json:"WebMessage"`
+	Status        int    `json:"WebStatus"`
+	Successful    bool   `json:"IsSuccess"`
+
+	Entries []PollenData `json:"Entries"`
+}
+
+type PollenData struct {
+	CityState string `json:"CityState"`
+	City      string `json:"City"`
+	State     string `json: "State"`
+
+	PredominantPollen string `json: "PredominantPollen"`
+
+	Today     float64 `json:"Today"`
+	Tomorrow  float64 `json: "Tomorrow"`
+	TwoDays   float64 `json: "TwoDays"`
+	ThreeDays float64 `json: "ThreeDays"`
+}
+
+/* Pollen return type */
+type PollenInfo struct {
+	City  string `json:"City"`
+	State string `json: "State"`
+
+	PredominantPollen string    `json: "PredominantPollen"`
+	PollenCount       []float64 `json: "PollenCount"`
+}
+
 const (
 	// URL example:  "https://nasacort.com/Ajax/PollenResults.aspx?ZipCode=30022"
 	POLLEN_BASEURL = "https://nasacort.com/Ajax/PollenResults.aspx?ZipCode="
@@ -125,6 +156,7 @@ func main() {
 
 func GetPollenInfo(zipcode string) (string, error) {
 
+	//	Construct the complete url
 	url := POLLEN_BASEURL + zipcode
 
 	//	Go fetch the response from the server:
@@ -140,6 +172,30 @@ func GetPollenInfo(zipcode string) (string, error) {
 		return "", err
 	}
 
-	//	Return the JSON body
-	return string(body), nil
+	//	Unmarshall from JSON into our struct:
+	pres := &PollenResponse{}
+	if err := json.Unmarshal(body, &pres); err != nil {
+		return "", err
+	}
+
+	//	Put data into our response struct
+	pollenCounts := make([]float64, 4)
+	pollenCounts[0] = pres.Entries[0].Today
+	pollenCounts[1] = pres.Entries[0].Tomorrow
+	pollenCounts[2] = pres.Entries[0].TwoDays
+	pollenCounts[3] = pres.Entries[0].ThreeDays
+	PollenReturnData := PollenInfo{
+		City:              pres.Entries[0].City,
+		State:             pres.Entries[0].State,
+		PollenCount:       pollenCounts,
+		PredominantPollen: pres.Entries[0].PredominantPollen}
+
+	//	Marshall into a JSON string
+	PollenReturn, err := json.Marshal(PollenReturnData)
+	if err != nil {
+		return "", err
+	}
+
+	//	Return the JSON string
+	return string(PollenReturn), nil
 }

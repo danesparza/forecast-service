@@ -80,7 +80,7 @@ func main() {
 		long := mux.Vars(r)["long"]
 
 		// 	See if we have the forecast in the cache
-		fcast, found := c.Get("forecast")
+		fcast, found := c.Get("forecast-" + lat + "-" + long)
 		if !found {
 			//	We didn't find it in cache.
 			forecastCacheMisses.Add(1)
@@ -96,7 +96,7 @@ func main() {
 
 			//	Set the item in cache:
 			fcast = f
-			c.Set("forecast", fcast, cache.DefaultExpiration)
+			c.Set("forecast-"+lat+"-"+long, fcast, cache.DefaultExpiration)
 		} else {
 			forecastCacheHits.Add(1)
 		}
@@ -112,7 +112,7 @@ func main() {
 		zip := mux.Vars(r)["zip"]
 
 		// 	See if we have the pollen in the cache
-		fcast, found := c.Get("pollen")
+		fcast, found := c.Get("pollen-" + zip)
 		if !found {
 			//	We didn't find it in cache.
 			pollenCacheMisses.Add(1)
@@ -128,7 +128,7 @@ func main() {
 
 			//	Set the item in cache:
 			fcast = f
-			c.Set("pollen", fcast, cache.DefaultExpiration)
+			c.Set("pollen-"+zip, fcast, cache.DefaultExpiration)
 		} else {
 			pollenCacheHits.Add(1)
 		}

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	forecast "github.com/danesparza/forecast/v2"
+	"github.com/goji/httpauth"
 	"github.com/gorilla/mux"
 	"github.com/pmylund/go-cache"
 	"github.com/rs/cors"
@@ -63,6 +64,8 @@ func main() {
 	//	Set up our flags
 	port := flag.Int("port", 3000, "The port to listen on")
 	key := flag.String("apikey", "ReplaceWithYourKey", "Your Forecast.io API key")
+	expvarUser := flag.String("expvarUser", "changeme", "The username to access expvar stats")
+	expvarPass := flag.String("expvarPass", "changeme", "The password to access expvar stats")
 	allowedOrigins := flag.String("allowedOrigins", "*", "A comma-separated list of valid CORS origins")
 
 	//	Parse the command line for flags:
@@ -138,8 +141,8 @@ func main() {
 		fmt.Fprint(w, fcast)
 	})
 
-	//	Uncomment this to expose debug variables:
-	//	r.Handle("/debug/vars", http.DefaultServeMux)
+	//	Expose debug variables with a simple user/password:
+	r.Handle("/debug/vars", httpauth.SimpleBasicAuth(*expvarUser, *expvarPass)(http.DefaultServeMux))
 
 	//	CORS handler
 	ch := cors.New(cors.Options{

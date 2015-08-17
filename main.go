@@ -12,6 +12,7 @@ import (
 	"github.com/rs/cors"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -53,20 +54,53 @@ const (
 	POLLEN_BASEURL = "https://nasacort.com/Ajax/PollenResults.aspx?ZipCode="
 )
 
-//	Expvars for cache hits and misses
-var forecastCacheHits = expvar.NewInt("Forecast cache hits")
-var forecastCacheMisses = expvar.NewInt("Forecast cache misses")
-var pollenCacheHits = expvar.NewInt("Pollen cache hits")
-var pollenCacheMisses = expvar.NewInt("Pollen cache misses")
+var (
+
+	//	Expvars for cache hits and misses
+	forecastCacheHits   = expvar.NewInt("Forecast cache hits")
+	forecastCacheMisses = expvar.NewInt("Forecast cache misses")
+	pollenCacheHits     = expvar.NewInt("Pollen cache hits")
+	pollenCacheMisses   = expvar.NewInt("Pollen cache misses")
+
+	//	Set up our flags
+	port           = flag.Int("port", 3000, "The port to listen on")
+	allowedOrigins = flag.String("allowedOrigins", "*", "A comma-separated list of valid CORS origins")
+	key            = flag.String("apikey", "ReplaceWithYourKey", "Your Forecast.io API key")
+	expvarUser     = flag.String("expvarUser", "changeme", "The username to access expvar stats")
+	expvarPass     = flag.String("expvarPass", "changeme", "The password to access expvar stats")
+)
+
+func parseEnvironment() {
+	//	Check for the listen port
+	if env_port := os.Getenv("FORECAST_PORT"); env_port != "" {
+		*port, _ = strconv.Atoi(env_port)
+	}
+
+	//	Check for allowed origins
+	if env_origins := os.Getenv("FORECAST_ALLOWED_ORIGINS"); env_origins != "" {
+		*allowedOrigins = env_origins
+	}
+
+	//	Check for API key
+	if env_api_key := os.Getenv("FORECAST_KEY"); env_api_key != "" {
+		*key = env_api_key
+	}
+
+	//	Check for expvar user
+	if env_expvar_user := os.Getenv("FORECAST_EXPVAR_USER"); env_expvar_user != "" {
+		*expvarUser = env_expvar_user
+	}
+
+	//	Check for expvar password
+	if env_expvar_pass := os.Getenv("FORECAST_EXPVAR_PASS"); env_expvar_pass != "" {
+		*expvarPass = env_expvar_pass
+	}
+}
 
 func main() {
 
-	//	Set up our flags
-	port := flag.Int("port", 3000, "The port to listen on")
-	key := flag.String("apikey", "ReplaceWithYourKey", "Your Forecast.io API key")
-	expvarUser := flag.String("expvarUser", "changeme", "The username to access expvar stats")
-	expvarPass := flag.String("expvarPass", "changeme", "The password to access expvar stats")
-	allowedOrigins := flag.String("allowedOrigins", "*", "A comma-separated list of valid CORS origins")
+	//	Parse environment variables:
+	parseEnvironment()
 
 	//	Parse the command line for flags:
 	flag.Parse()

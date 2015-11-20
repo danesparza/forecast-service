@@ -1,7 +1,7 @@
 # forecast-service
 A pass-through microservice for the [forecast.io](http://forecast.io/) API and pollen data
 
-[![Build Status](https://drone.io/github.com/danesparza/forecast-service/status.png)](https://drone.io/github.com/danesparza/forecast-service/latest)
+Build: [![Circle CI](https://circleci.com/gh/danesparza/forecast-service.svg?style=svg)](https://circleci.com/gh/danesparza/forecast-service)
 
 *To build, make sure you have the latest version of [Go](http://golang.org/) installed.  If you've never used Go before, it's a quick install and [there are installers for multiple platforms](http://golang.org/doc/install), including Windows, Linux and OSX.*
 
